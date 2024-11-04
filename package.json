@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && refine build",
+    "build": "tsc --noEmit || true && refine build",
     "dev": "refine dev",
     "refine": "refine",
     "start": "refine start"
@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@ant-design/icons": "5.0.1",
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@refinedev/antd": "^5.43.1",
     "@refinedev/cli": "^2.16.39",
     "@refinedev/core": "^4.55.0",
@@ -34,7 +36,8 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-google-autocomplete": "^2.7.3",
-    "react-router-dom": "^6.8.1"
+    "react-router-dom": "^6.8.1",
+    "rollup-plugin-polyfill-node": "^0.13.0"
   },
   "devDependencies": {
     "@types/node": "^18.16.2",

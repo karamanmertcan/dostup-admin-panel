@@ -30,7 +30,9 @@ export const NewsCreate = () => {
         ],
     });
 
-    console.log('categorySelectProps', queryData?.data?.data);
+
+    const categoryOptions = queryData.data?.data || [];
+
 
 
 
@@ -109,16 +111,13 @@ export const NewsCreate = () => {
                         },
                     ]}
                 >
-                    <Select {...categorySelectProps}
+                    <Select
+                        {...categorySelectProps}
                         options={[
-                            {
-                                label: "Select a category",
-                                value: "",
-                                disabled: true,
-                            },
-                            ...queryData.data?.data.map((category) => ({
-                                label: category.category,
-                                value: category._id,
+                            { label: "Select a category", value: "", disabled: true },
+                            ...categoryOptions.map((category) => ({
+                                label: category?.category || "Unknown Category",
+                                value: category?._id || "",
                             })),
                         ]}
                     />
