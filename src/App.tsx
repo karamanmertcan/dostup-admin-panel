@@ -3,6 +3,7 @@ import {
   Refine,
   type AuthProvider,
   Authenticated,
+  Link,
 } from "@refinedev/core";
 import {
   useNotificationProvider,
@@ -10,6 +11,7 @@ import {
   ErrorComponent,
   AuthPage,
   RefineThemes,
+  ThemedSiderV2,
 } from "@refinedev/antd";
 import {
   GoogleOutlined,
@@ -25,13 +27,15 @@ import routerProvider, {
   DocumentTitleHandler,
 } from "@refinedev/react-router-v6";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { App as AntdApp, ConfigProvider } from "antd";
+import { App as AntdApp, ConfigProvider, Layout } from "antd";
 
 import "@refinedev/antd/dist/reset.css";
 
 import { PostList, PostEdit, PostShow, BlogsCreate } from "../src/pages/posts";
 import { DashboardPage } from "../src/pages/dashboard";
 import { NewsCreate, NewsEdit, NewsList, NewsShow } from "./pages/news";
+import { ListingsCreate, ListingsEdit, ListingsList } from "./pages/listings";
+import { ListingTypeCreate, ListingTypeList } from "./pages/listing-type";
 
 const API_URL = "http://localhost:3003";
 
@@ -113,7 +117,7 @@ const App: React.FC = () => {
     getPermissions: async (params) => params?.permissions,
     getIdentity: async () => ({
       id: 1,
-      name: "Jane Doe",
+      name: "Admin",
       avatar:
         "https://unsplash.com/photos/IWLOvomUmWU/download?force=true&w=640",
     }),
@@ -151,6 +155,18 @@ const App: React.FC = () => {
                 show: "/news/show/:id",
                 edit: "/news/news-by-id/:id",
               },
+              {
+                name: "listings",
+                list: "/listings",
+                create: "/listings/create",
+                show: "/listings/show/:id",
+                edit: "/listings/listings-by-id/:id",
+              },
+              {
+                name: "listing-types",
+                list: "/listing-types",
+                create: "/listing-types/create",
+              },
             ]}
             notificationProvider={useNotificationProvider}
             options={{
@@ -165,7 +181,22 @@ const App: React.FC = () => {
                     key="authenticated-routes"
                     fallback={<CatchAllNavigate to="/login" />}
                   >
-                    <ThemedLayoutV2>
+                    <ThemedLayoutV2
+                      Sider={(props) => (
+                        <ThemedSiderV2
+                          Title={({ }) => (
+                            <span
+                              style={{
+                                fontSize: 27,
+                                fontWeight: 'bold',
+                              }}
+                            >
+                              DOSTUP
+                            </span>
+                          )}
+                        />
+                      )}
+                    >
                       <Outlet />
                     </ThemedLayoutV2>
                   </Authenticated>
@@ -184,6 +215,16 @@ const App: React.FC = () => {
                   <Route path="news-by-id/:id" element={<NewsEdit />} />
                   <Route path="show/:id" element={<NewsShow />} />
                   <Route path="create" element={<NewsCreate />} />
+                </Route>
+                <Route path="/listings">
+                  <Route index element={<ListingsList />} />
+                  <Route path="listings-by-id/:id" element={<ListingsEdit />} />
+                  <Route path="show/:id" element={<NewsShow />} />
+                  <Route path="create" element={<ListingsCreate />} />
+                </Route>
+                <Route path="/listing-types">
+                  <Route index element={<ListingTypeList />} />
+                  <Route path="create" element={<ListingTypeCreate />} />
                 </Route>
               </Route>
 

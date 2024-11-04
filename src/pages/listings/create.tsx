@@ -1,17 +1,24 @@
 import React, { useState } from "react";
-import { Create, useForm } from "@refinedev/antd";
+import { Create, useForm, useSelect } from "@refinedev/antd";
 import { useCreate } from "@refinedev/core";
-import { Form, Input, Upload, Button, Space } from "antd";
+import { Form, Input, Upload, Button, Space, Switch, Select } from "antd";
 import { CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
 import MDEditor from "@uiw/react-md-editor";
 import { useNavigate } from "react-router-dom";
+import Autocomplete from "react-google-autocomplete";
+
 
 export const ListingsCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
     const { mutate } = useCreate();
     const navigate = useNavigate();
+    const [location, setLocation] = useState("");
     const [fileList, setFileList] = useState([]);
     const [existingImages, setExistingImages] = useState([]);
+
+    const { selectProps: categorySelectProps, query: queryData } = useSelect({
+        resource: "listings/listing-types",
+    });
 
 
 
@@ -19,7 +26,11 @@ export const ListingsCreate = () => {
         const formData = new FormData();
         formData.append('title', values.title);
         formData.append('content', values.content);
-        formData.append('author', "6723c21f12030d6f36879c80")
+        formData.append('owner', "6723c21f12030d6f36879c80")
+        formData.append('price', values.price);
+        formData.append('isAd', values.isAd);
+        formData.append('category', values.category);
+        formData.append('location', location);
 
         fileList.forEach((file) => {
             formData.append("images", file.originFileObj);
@@ -27,7 +38,7 @@ export const ListingsCreate = () => {
 
         await mutate(
             {
-                resource: 'blogs/create-blog',
+                resource: 'listings/create-listing',
                 values: formData,
                 options: {
                     headers: {
@@ -37,7 +48,7 @@ export const ListingsCreate = () => {
             },
             {
                 onSuccess: () => {
-                    navigate('/blogs', { replace: true });
+                    navigate('/listings', { replace: true });
                 }
             }
         );
@@ -46,7 +57,7 @@ export const ListingsCreate = () => {
     const handleUploadChange = ({ fileList }) => setFileList(fileList);
 
     return (
-        <Create saveButtonProps={saveButtonProps} title={"Create Blog"}>
+        <Create saveButtonProps={saveButtonProps} title={"Create Listings"}>
             <Form
                 {...formProps}
                 onFinish={(values) => {
@@ -60,6 +71,64 @@ export const ListingsCreate = () => {
                     rules={[{ required: true, message: "Please enter a title" }]}
                 >
                     <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Price"
+                    name="price"
+                    rules={[{ required: true, message: "Please enter a price" }]}
+                >
+                    <Input />
+                </Form.Item>
+
+                <Form.Item
+                    label="Is Ad?"
+                    name="isAd"
+                    rules={[{
+                        required: true,
+                        message: "Please enter a isAd"
+                    }]}
+                >
+                    <Switch />
+                </Form.Item>
+
+                <Form.Item
+                    label="Listing Type"
+                    name={["category"]}
+                    rules={[
+                        {
+                            required: true,
+                        },
+                    ]}
+                >
+                    <Select {...categorySelectProps}
+                        options={[
+                            {
+                                label: "Select a category",
+                                value: "",
+                                disabled: true,
+                            },
+                            ...(queryData?.data?.data ? queryData.data.data.map((item) => ({
+                                label: item?.listingType.charAt(0).toUpperCase() + item?.listingType.slice(1),
+                                value: item?._id,
+                            })) : []), // Fallback to an empty array if it's not defined
+                        ]}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="Location"
+                    name="location"
+                >
+                    <Autocomplete
+                        apiKey={"AIzaSyA1fzv5yl3wK-Db2nNzfrR8HIRrgBbFWxo"}
+                        onPlaceSelected={(place) => {
+                            setLocation(place.formatted_address); // Save the selected location
+                            console.log(place);
+                        }}
+                        style={{ width: '100%', borderRadius: 10, height: 40, borderWidth: 1, borderColor: '#d4d4d4' }} // Ensure full width
+
+                        placeholder="Enter a location"
+                    />
                 </Form.Item>
 
                 <Form.Item

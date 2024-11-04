@@ -1,75 +1,142 @@
-import React, { useEffect, useState } from "react";
-import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, Upload, Button, Space } from "antd";
+import React, { useState } from "react";
+import { Create, Edit, useForm, useSelect } from "@refinedev/antd";
+import { useCreate, useParsed, useUpdate } from "@refinedev/core";
+import { Form, Input, Upload, Button, Space, Switch, Select } from "antd";
 import { CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
 import MDEditor from "@uiw/react-md-editor";
-import { useParsed, useUpdate } from "@refinedev/core";
+import { useNavigate } from "react-router-dom";
+import Autocomplete from "react-google-autocomplete";
+
 
 export const ListingsEdit = () => {
+    const { formProps, saveButtonProps } = useForm({});
     const { id } = useParsed();
-    const { formProps, saveButtonProps, queryResult } = useForm({
-        refineCoreProps: {
-            resource: "blogs/blog",
-            id: id,
-        },
-    });
     const { mutate } = useUpdate();
+    const navigate = useNavigate();
+    const [location, setLocation] = useState("");
+    const [fileList, setFileList] = useState([]);
+    const [existingImages, setExistingImages] = useState([]);
 
-    const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-    const [existingImages, setExistingImages] = useState<string[]>([]);
+    const { selectProps: categorySelectProps, query: queryData } = useSelect({
+        resource: "listings/listing-types",
+    });
 
-    useEffect(() => {
-        if (queryResult?.data?.data) {
-            const data = queryResult.data.data;
-            formProps.form?.setFieldsValue(data); // Set initial form values
-            setExistingImages(data.images || []); // Set existing images if they exist
-        }
-    }, [queryResult?.data, formProps.form]);
 
-    const handleImageUpload = (info: any) => {
-        setUploadedImages(info.fileList.map((file: any) => file.originFileObj));
-    };
 
-    const updateFormData = async (values: any) => {
+    const createFormData = async (values: any) => {
         const formData = new FormData();
-        formData.append("title", values.title);
-        formData.append("content", values.content);
+        formData.append('title', values.title);
+        formData.append('content', values.content);
+        formData.append('owner', "6723c21f12030d6f36879c80")
+        formData.append('price', values.price);
+        formData.append('isAd', values.isAd);
+        formData.append('category', values.category);
+        formData.append('location', location);
 
-        // Append uploaded images
-        uploadedImages.forEach((file) => {
-            formData.append("images", file);
+        fileList.forEach((file) => {
+            formData.append("images", file.originFileObj);
         });
 
-        console.log("formData", formData);
-
-
-        // Pass data to the mutate function
-        await mutate({
-            resource: "blogs/blog",
-            id: id,
-            values: formData,
-        });
+        await mutate(
+            {
+                resource: 'listings/update',
+                values: formData,
+                id: id,
+                options: {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                },
+            },
+            {
+                onSuccess: () => {
+                    navigate('/listings', { replace: true });
+                }
+            }
+        );
     };
+
+    const handleUploadChange = ({ fileList }) => setFileList(fileList);
 
     return (
-        <Edit saveButtonProps={saveButtonProps}>
+        <Edit saveButtonProps={saveButtonProps} title={"Edit Listing"}>
             <Form
                 {...formProps}
-                onFinish={(values) => updateFormData(values)}
+                onFinish={(values) => {
+                    createFormData(values);
+                }}
                 layout="vertical"
             >
                 <Form.Item
                     label="Title"
                     name="title"
-                    rules={[{ required: true, message: "Title is required" }]}
+                    rules={[{ required: true, message: "Please enter a title" }]}
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Price"
+                    name="price"
+                    rules={[{ required: true, message: "Please enter a price" }]}
                 >
                     <Input />
                 </Form.Item>
 
                 <Form.Item
+                    label="Is Ad?"
+                    name="isAd"
+                    rules={[{
+                        required: true,
+                        message: "Please enter a isAd"
+                    }]}
+                >
+                    <Switch />
+                </Form.Item>
+
+                <Form.Item
+                    label="Listing Type"
+                    name={["category"]}
+                    rules={[
+                        {
+                            required: true,
+                        },
+                    ]}
+                >
+                    <Select {...categorySelectProps}
+                        options={[
+                            {
+                                label: "Select a category",
+                                value: "",
+                                disabled: true,
+                            },
+                            ...(queryData?.data?.data ? queryData.data.data.map((item) => ({
+                                label: item?.listingType.charAt(0).toUpperCase() + item?.listingType.slice(1),
+                                value: item?._id,
+                            })) : []), // Fallback to an empty array if it's not defined
+                        ]}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="Location"
+                    name="location"
+                >
+                    <Autocomplete
+                        apiKey={"AIzaSyA1fzv5yl3wK-Db2nNzfrR8HIRrgBbFWxo"}
+                        onPlaceSelected={(place) => {
+                            setLocation(place.formatted_address); // Save the selected location
+                            console.log(place);
+                        }}
+                        style={{ width: '100%', borderRadius: 10, height: 40, borderWidth: 1, borderColor: '#d4d4d4' }} // Ensure full width
+
+                        placeholder="Enter a location"
+                    />
+                </Form.Item>
+
+                <Form.Item
                     label="Content"
                     name="content"
-                    rules={[{ required: true, message: "Content is required" }]}
+                    rules={[{ required: true, message: "Please enter content" }]}
                 >
                     <MDEditor data-color-mode="light" />
                 </Form.Item>
@@ -78,7 +145,7 @@ export const ListingsEdit = () => {
                     <Upload
                         multiple
                         beforeUpload={() => false} // Prevent automatic upload
-                        onChange={handleImageUpload}
+                        onChange={handleUploadChange}
                         listType="picture"
                         defaultFileList={existingImages.map((url, index) => ({
                             uid: index,

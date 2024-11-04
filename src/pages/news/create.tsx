@@ -59,7 +59,7 @@ export const NewsCreate = () => {
             },
             {
                 onSuccess: () => {
-                    navigate('/blogs', { replace: true });
+                    navigate('/news', { replace: true });
                 }
             }
         );
