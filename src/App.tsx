@@ -37,7 +37,8 @@ import { NewsCreate, NewsEdit, NewsList, NewsShow } from "./pages/news";
 import { ListingsCreate, ListingsEdit, ListingsList } from "./pages/listings";
 import { ListingTypeCreate, ListingTypeList } from "./pages/listing-type";
 
-const API_URL = "http://localhost:3003";
+
+export const API_URL = 'https://dostup-api.vercel.app'
 
 /**
  *  mock auth credentials to simulate authentication

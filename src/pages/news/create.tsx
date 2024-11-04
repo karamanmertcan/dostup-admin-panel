@@ -134,7 +134,7 @@ export const NewsCreate = () => {
                             uid: index,
                             name: `Existing Image ${index + 1}`,
                             status: "done",
-                            url: `http://localhost:3003/upload-file/blogs/${url}`,
+                            url: `https://dostup-api.vercel.app/upload-file/blogs/${url}`,
                         }))}
                     >
                         <Button icon={<CloudUploadOutlined />}>Upload Images</Button>
@@ -143,7 +143,7 @@ export const NewsCreate = () => {
                         {existingImages.map((src, index) => (
                             <img
                                 key={index}
-                                src={`http://localhost:3003/upload-file/blogs/${src}`}
+                                src={`https://dostup-api.vercel.app/upload-file/blogs/${src}`}
                                 alt={`Existing Image ${index + 1}`}
                                 style={{ width: 100, height: 100 }}
                             />

@@ -46,7 +46,7 @@ export const ListingsList = () => {
 
                         if (key === "images" && Array.isArray(value) && value.length > 0) {
                             return value.map((img, index) => (
-                                <Image key={index} width={50} src={`http://localhost:3003/upload-file/listings/${img}`} />
+                                <Image key={index} width={50} src={`https://dostup-api.vercel.app/upload-file/listings/${img}`} />
                             ));
                         }
 
