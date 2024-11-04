@@ -1,4 +1,4 @@
-import { useMany } from "@refinedev/core";
+import { useList, useMany } from "@refinedev/core";
 
 import {
   List,
@@ -6,6 +6,7 @@ import {
   useTable,
   EditButton,
   ShowButton,
+  DeleteButton,
 } from "@refinedev/antd";
 
 import { Table, Space } from "antd";
@@ -13,45 +14,36 @@ import { Table, Space } from "antd";
 import type { IPost, ICategory } from "../../interfaces";
 
 export const PostList = () => {
-  const { tableProps } = useTable<IPost>();
-
-  const categoryIds =
-    tableProps?.dataSource?.map((item) => item.category.id) ?? [];
-  const { data, isLoading } = useMany<ICategory>({
-    resource: "categories",
-    ids: categoryIds,
-    queryOptions: {
-      enabled: categoryIds.length > 0,
-    },
+  const { tableProps } = useTable({
+    syncWithLocation: true,
+    resource: 'blogs'
   });
+
+  const { data: blogsData, isLoading: blogIsLoading, refetch } = useList({
+    resource: "blogs",
+
+  })
 
   return (
     <List>
-      <Table {...tableProps} rowKey="id">
-        <Table.Column dataIndex="id" title="ID" />
+      <Table {...tableProps} dataSource={blogsData?.data} rowKey="_id">
+        <Table.Column dataIndex="_id" title="ID" />
         <Table.Column dataIndex="title" title="Title" />
-        <Table.Column
-          dataIndex={["category", "id"]}
-          title="Category"
-          render={(value) => {
-            if (isLoading) {
-              return <TextField value="Loading..." />;
-            }
+        <Table.Column dataIndex="content" title="Content" />
 
-            return (
-              <TextField
-                value={data?.data.find((item) => item.id === value)?.title}
-              />
-            );
-          }}
-        />
-        <Table.Column<IPost>
+        <Table.Column
           title="Actions"
           dataIndex="actions"
           render={(_, record) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
+              <EditButton hideText size="small" recordItemId={record._id} />
+              <ShowButton hideText size="small" recordItemId={record._id} />
+              <DeleteButton hideText size="small"
+                resource="blogs/delete"
+                onSuccess={() => {
+                  refetch()
+                }}
+                recordItemId={record._id} />
             </Space>
           )}
         />

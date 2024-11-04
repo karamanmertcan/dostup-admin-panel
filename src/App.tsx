@@ -29,10 +29,11 @@ import { App as AntdApp, ConfigProvider } from "antd";
 
 import "@refinedev/antd/dist/reset.css";
 
-import { PostList, PostEdit, PostShow } from "../src/pages/posts";
+import { PostList, PostEdit, PostShow, BlogsCreate } from "../src/pages/posts";
 import { DashboardPage } from "../src/pages/dashboard";
+import { NewsCreate, NewsEdit, NewsList, NewsShow } from "./pages/news";
 
-const API_URL = "https://api.fake-rest.refine.dev";
+const API_URL = "http://localhost:3003";
 
 /**
  *  mock auth credentials to simulate authentication
@@ -45,20 +46,6 @@ const authCredentials = {
 const App: React.FC = () => {
   const authProvider: AuthProvider = {
     login: async ({ providerName, email }) => {
-      if (providerName === "google") {
-        window.location.href = "https://accounts.google.com/o/oauth2/v2/auth";
-        return {
-          success: true,
-        };
-      }
-
-      if (providerName === "github") {
-        window.location.href = "https://github.com/login/oauth/authorize";
-        return {
-          success: true,
-        };
-      }
-
       if (email === authCredentials.email) {
         localStorage.setItem("email", email);
         return {
@@ -91,36 +78,8 @@ const App: React.FC = () => {
         },
       };
     },
-    updatePassword: async (params) => {
-      if (params.password === authCredentials.password) {
-        //we can update password here
-        return {
-          success: true,
-        };
-      }
-      return {
-        success: false,
-        error: {
-          message: "Update password failed",
-          name: "Invalid password",
-        },
-      };
-    },
-    forgotPassword: async (params) => {
-      if (params.email === authCredentials.email) {
-        //we can send email with reset password link here
-        return {
-          success: true,
-        };
-      }
-      return {
-        success: false,
-        error: {
-          message: "Forgot password failed",
-          name: "Invalid email",
-        },
-      };
-    },
+
+
     logout: async () => {
       localStorage.removeItem("email");
       return {
@@ -140,17 +99,17 @@ const App: React.FC = () => {
     check: async () =>
       localStorage.getItem("email")
         ? {
-            authenticated: true,
-          }
+          authenticated: true,
+        }
         : {
-            authenticated: false,
-            error: {
-              message: "Check failed",
-              name: "Not authenticated",
-            },
-            logout: true,
-            redirectTo: "/login",
+          authenticated: false,
+          error: {
+            message: "Check failed",
+            name: "Not authenticated",
           },
+          logout: true,
+          redirectTo: "/login",
+        },
     getPermissions: async (params) => params?.permissions,
     getIdentity: async () => ({
       id: 1,
@@ -162,7 +121,6 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
-      <GitHubBanner />
       <ConfigProvider theme={RefineThemes.Blue}>
         <AntdApp>
           <Refine
@@ -180,10 +138,18 @@ const App: React.FC = () => {
                 },
               },
               {
-                name: "posts",
-                list: "/posts",
-                show: "/posts/show/:id",
-                edit: "/posts/edit/:id",
+                name: "blogs",
+                list: "/blogs",
+                create: "/blogs/create",
+                show: "/blogs/show/:id",
+                edit: "/blogs/blog/:id",
+              },
+              {
+                name: "news",
+                list: "/news",
+                create: "/news/create",
+                show: "/news/show/:id",
+                edit: "/news/news-by-id/:id",
               },
             ]}
             notificationProvider={useNotificationProvider}
@@ -207,10 +173,17 @@ const App: React.FC = () => {
               >
                 <Route index element={<DashboardPage />} />
 
-                <Route path="/posts">
+                <Route path="/blogs">
                   <Route index element={<PostList />} />
-                  <Route path="edit/:id" element={<PostEdit />} />
+                  <Route path="blog/:id" element={<PostEdit />} />
                   <Route path="show/:id" element={<PostShow />} />
+                  <Route path="create" element={<BlogsCreate />} />
+                </Route>
+                <Route path="/news">
+                  <Route index element={<NewsList />} />
+                  <Route path="news-by-id/:id" element={<NewsEdit />} />
+                  <Route path="show/:id" element={<NewsShow />} />
+                  <Route path="create" element={<NewsCreate />} />
                 </Route>
               </Route>
 
@@ -226,86 +199,17 @@ const App: React.FC = () => {
                   element={
                     <AuthPage
                       type="login"
+                      forgotPasswordLink={false}
+                      registerLink={false}
                       formProps={{
                         initialValues: {
                           ...authCredentials,
                         },
                       }}
-                      providers={[
-                        {
-                          name: "google",
-                          label: "Sign in with Google",
-                          icon: (
-                            // @ts-expect-error Ant Design Icon's v5.0.1 has an issue with @types/react@^18.2.66
-                            <GoogleOutlined
-                              style={{
-                                fontSize: 24,
-                                lineHeight: 0,
-                              }}
-                            />
-                          ),
-                        },
-                        {
-                          name: "github",
-                          label: "Sign in with GitHub",
-                          icon: (
-                            // @ts-expect-error Ant Design Icon's v5.0.1 has an issue with @types/react@^18.2.66
-                            <GithubOutlined
-                              style={{
-                                fontSize: 24,
-                                lineHeight: 0,
-                              }}
-                            />
-                          ),
-                        },
-                      ]}
                     />
                   }
                 />
-                <Route
-                  path="/register"
-                  element={
-                    <AuthPage
-                      type="register"
-                      providers={[
-                        {
-                          name: "google",
-                          label: "Sign in with Google",
-                          icon: (
-                            // @ts-expect-error Ant Design Icon's v5.0.1 has an issue with @types/react@^18.2.66
-                            <GoogleOutlined
-                              style={{
-                                fontSize: 24,
-                                lineHeight: 0,
-                              }}
-                            />
-                          ),
-                        },
-                        {
-                          name: "github",
-                          label: "Sign in with GitHub",
-                          icon: (
-                            // @ts-expect-error Ant Design Icon's v5.0.1 has an issue with @types/react@^18.2.66
-                            <GithubOutlined
-                              style={{
-                                fontSize: 24,
-                                lineHeight: 0,
-                              }}
-                            />
-                          ),
-                        },
-                      ]}
-                    />
-                  }
-                />
-                <Route
-                  path="/forgot-password"
-                  element={<AuthPage type="forgotPassword" />}
-                />
-                <Route
-                  path="/update-password"
-                  element={<AuthPage type="updatePassword" />}
-                />
+
               </Route>
 
               <Route
